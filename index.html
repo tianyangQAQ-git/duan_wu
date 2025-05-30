@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>端午安康</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2D5B3F',
+                        secondary: '#E63946',
+                        accent: '#F4A261',
+                        light: '#F1FAEE',
+                        dark: '#1D3557',
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans SC', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            }
+            .text-shadow-lg {
+                text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            }
+            .bg-gradient-green {
+                background: linear-gradient(135deg, #2D5B3F 0%, #4D7C0F 100%);
+            }
+            .float-animation {
+                animation: float 3s ease-in-out infinite;
+            }
+            .fade-in {
+                animation: fadeIn 1s ease-in-out forwards;
+            }
+            .slide-up {
+                animation: slideUp 0.8s ease-out forwards;
+            }
+            .bounce-in {
+                animation: bounceIn 0.6s cubic-bezier(0.215, 0.610, 0.355, 1.000) forwards;
+            }
+            .scale-hover {
+                transition: transform 0.3s ease;
+            }
+            .scale-hover:hover {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            20% { transform: scale(1.1); }
+            40% { transform: scale(0.9); }
+            60% { transform: scale(1.03); opacity: 1; }
+            80% { transform: scale(0.97); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(45, 91, 63, 0.1);
+            border: 1px solid rgba(45, 91, 63, 0.2);
+            animation: bubble-rise linear forwards;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 20; /* 提高气泡层级 */
+        }
+        
+        .bubble:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(45, 91, 63, 0.3);
+            z-index: 30; /* 悬停时进一步提高层级 */
+        }
+        
+        @keyframes bubble-rise {
+            0% {
+                transform: translateY(0) scale(0.5) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(-50vh) scale(1) translateX(calc(var(--x-offset) * 1px));
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-100vh) scale(1.2) translateX(calc(var(--x-offset) * 2px));
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light min-h-screen overflow-x-hidden">
+    <!-- 顶部装饰 -->
+    <div class="fixed top-0 left-0 w-full bg-gradient-green h-3 z-50"></div>
+
+    <!-- 背景气泡容器 -->
+    <div id="bubbles-container" class="fixed inset-0 z-10"></div> <!-- 提高 z-index -->
+
+    <!-- 主容器 -->
+    <main class="container mx-auto px-4 py-8 relative z-10 max-w-5xl">
+        <!-- 标题区域 -->
+        <header class="text-center mb-12 pt-8 opacity-0" id="header">
+            <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-primary text-shadow-lg mb-4">端午安康</h1>
+            <p class="text-[clamp(1rem,2vw,1.25rem)] text-dark/80 max-w-2xl mx-auto">愿这个传统佳节为您带来安康与吉祥</p>
+            <div class="mt-6 flex justify-center">
+                <div class="w-24 h-1 bg-secondary rounded-full"></div>
+            </div>
+        </header>
+
+        <!-- 祝福卡片展示区域 -->
+        <div class="mb-16 opacity-0" id="result-container">
+            <h3 class="text-2xl font-bold text-primary mb-8 text-center">端午节祝福卡片</h3>
+            <div class="flex justify-center">
+                <div id="card-preview" class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden transform transition-all duration-500 scale-0 opacity-0" style="transform-origin: center top;">
+                    <div id="card-header" class="h-48 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-r from-primary/80 to-dark/80"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-white text-shadow text-center" id="card-title">端午安康</h2>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-6 text-center">
+                            <div class="inline-block p-3 bg-primary/10 rounded-full mb-4">
+                                <i class="fa fa-calendar text-primary text-3xl"></i>
+                            </div>
+                            <p class="text-dark/70 text-sm" id="card-date">2025年5月31日 星期六</p>
+                        </div>
+                        <div class="bg-light p-4 rounded-lg mb-6">
+                            <p class="text-dark/90 text-lg italic text-center" id="card-message">愿您在这个端午节里，身体健康，心情愉悦，生活如糯米粽般甜蜜美满。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 生成按钮区域 -->
+        <div class="text-center mb-16 opacity-0" id="generate-container">
+            <button id="generate-card" class="bg-gradient-green hover:opacity-90 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
+                <i class="fa fa-random mr-2"></i>生成随机祝福
+            </button>
+        </div>
+    </main>
+
+    <script>
+        // 页面元素
+        const header = document.getElementById('header');
+        const resultContainer = document.getElementById('result-container');
+        const generateContainer = document.getElementById('generate-container');
+        const cardPreview = document.getElementById('card-preview');
+        const cardHeader = document.getElementById('card-header');
+        const bubblesContainer = document.getElementById('bubbles-container');
+        
+        // 按钮
+        const generateCardBtn = document.getElementById('generate-card');
+        
+        // 卡片内容元素
+        const cardTitle = document.getElementById('card-title');
+        const cardMessage = document.getElementById('card-message');
+        const cardDate = document.getElementById('card-date');
+        
+        // 祝福数据
+        const blessings = [
+            "粽叶飘香五月五，端午佳节共安康。愿您生活美满，事业如龙舟竞渡般勇往直前！",
+            "端午至，艾叶香。愿您的日子如糯米粘粘甜甜，身体如艾草百病不侵，端午安康！",
+            "五月五，是端阳。门插艾，香满堂。吃粽子，撒白糖。龙舟下水喜洋洋。祝您端午快乐！",
+            "愿您如粽叶般坚韧，生活如糯米般香甜，事业如龙舟般奋勇向前，端午安康！",
+            "端午佳节至，福气滚滚来。愿您心情舒畅，身体健康，一切如意！",
+            "端午节到了，愿您的生活像粽子一样，被幸福紧紧包裹，甜甜蜜蜜，美满幸福！",
+            "艾叶又飘香，时间近端阳。愿您端午好，心情喜洋洋。吃得香，睡得甜，工作顺利财源广！",
+            "端午临中夏，时清日复长。愿您在这个端午节里，收获满满的幸福和安康！",
+            "五月莺歌燕舞日，又到粽叶飘香时。愿您端来健康，端来平安，端来吉祥如意！",
+            "端午安康，愿您的生活如龙舟竞渡般充满活力，如粽子般甜蜜美满！"
+        ];
+        
+        // 卡片背景图片
+        const cardImages = [
+            'https://picsum.photos/id/102/600/400', // 龙舟
+            'https://picsum.photos/id/292/600/400', // 粽子
+            'https://picsum.photos/id/131/600/400', // 艾草
+            'https://picsum.photos/id/116/600/400', // 传统节日
+            'https://picsum.photos/id/225/600/400', // 自然风景
+        ];
+
+        // 端午相关古诗词
+        const poems = [
+            "不效艾符趋习俗，但祈蒲酒话升平。 —— 殷尧藩《端午日》",
+            "屈子冤魂终古在，楚乡遗俗至今留。 —— 边贡《午日观竞渡》",
+            "粽包分两髻，艾束著危冠。 —— 陆游《乙卯重五诗》",
+            "轻汗微微透碧纨，明朝端午浴芳兰。 —— 苏轼《浣溪沙·端午》",
+            "风雨端阳生晦冥，汨罗无处吊英灵。 —— 贝琼《已酉端午》"
+        ];
+        
+        // 创建气泡函数
+        function createBubble() {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            
+            // 随机大小和位置
+            const size = Math.random() * 60 + 20; // 20-80px
+            const left = Math.random() * 100; // 0-100%
+            const duration = Math.random() * 10 + 10; // 10-20秒
+            const xOffset = (Math.random() - 0.5) * 100; // 水平偏移
+            
+            // 随机颜色
+            const opacity = Math.random() * 0.2 + 0.1; // 0.1-0.3
+            bubble.style.backgroundColor = `rgba(45, 91, 63, ${opacity})`;
+            bubble.style.borderColor = `rgba(45, 91, 63, ${opacity * 2})`;
+            
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${left}%`;
+            bubble.style.bottom = '-100px';
+            bubble.style.animationDuration = `${duration}s`;
+            bubble.style.setProperty('--x-offset', xOffset);
+
+            // 添加点击事件监听器
+            bubble.addEventListener('click', (e) => {
+                console.log('Bubble clicked!', e.target); // 添加调试日志
+                bubble.style.animationPlayState = 'paused'; // 暂停动画
+                
+                // 添加破裂动画
+                bubble.style.animation = 'none';
+                bubble.style.transform = 'scale(1.5)';
+                bubble.style.opacity = '0';
+                bubble.style.transition = 'all 0.3s ease-out';
+                
+                setTimeout(() => {
+                    bubble.remove();
+                    const randomPoem = poems[Math.floor(Math.random() * poems.length)];
+                    showToast(randomPoem);
+                }, 300);
+            });
+            
+            // 添加到容器
+            bubblesContainer.appendChild(bubble);
+            
+            // 动画结束后移除
+            setTimeout(() => {
+                if (bubblesContainer.contains(bubble)) {
+                    bubble.remove();
+                }
+            }, duration * 1000);
+        }
+        
+        // 定期创建气泡
+        function startBubbles() {
+            createBubble();
+            setInterval(createBubble, 800);
+        }
+        
+        // 页面加载动画
+        setTimeout(() => {
+            header.classList.add('fade-in');
+            header.style.animationDelay = '0.2s';
+            
+            setTimeout(() => {
+                resultContainer.classList.add('fade-in');
+                resultContainer.style.animationDelay = '0.3s';
+            }, 300);
+            
+            setTimeout(() => {
+                generateContainer.classList.add('fade-in');
+                generateContainer.style.animationDelay = '0.3s';
+            }, 600);
+        }, 300);
+        
+        // 生成随机祝福卡片
+        generateCardBtn.addEventListener('click', () => {
+            // 随机选择祝福内容和卡片背景图片
+            const randomBlessing = blessings[Math.floor(Math.random() * blessings.length)];
+            const randomImage = cardImages[Math.floor(Math.random() * cardImages.length)];
+            
+            // 更新卡片内容
+            cardMessage.textContent = randomBlessing;
+            
+            // 获取当前日期
+            const now = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            cardDate.textContent = now.toLocaleDateString('zh-CN', options);
+            
+            // 更改卡片背景图片
+            cardHeader.style.backgroundImage = `url(${randomImage})`;
+            cardHeader.style.backgroundSize = 'cover';
+            cardHeader.style.backgroundPosition = 'center';
+            
+            // 显示卡片（如果是第一次生成）
+            if (cardPreview.classList.contains('scale-0')) {
+                cardPreview.classList.remove('scale-0', 'opacity-0');
+                cardPreview.classList.add('bounce-in');
+            } else {
+                // 否则添加动画效果
+                cardPreview.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
+                cardPreview.style.transform = 'scale(0.95)';
+                cardPreview.style.opacity = '0.8';
+                
+                setTimeout(() => {
+                    cardPreview.style.transform = 'scale(1)';
+                    cardPreview.style.opacity = '1';
+                }, 200);
+            }
+            
+            // 滚动到卡片
+            setTimeout(() => {
+                cardPreview.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+            
+            showToast('已生成新的祝福卡片！');
+        });
+        
+        // 显示提示框
+        function showToast(message, type = 'success') {
+            console.log('Showing toast:', message); // 添加调试日志
+            
+            // 创建提示框元素
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-8 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-lg z-50 transition-all duration-300 opacity-0 ${
+                type === 'error' ? 'bg-secondary text-white' : 'bg-primary text-white'
+            }`;
+            toast.textContent = message;
+            
+            // 添加到页面
+            document.body.appendChild(toast);
+            
+            // 显示动画
+            setTimeout(() => {
+                toast.classList.remove('opacity-0');
+                toast.classList.add('opacity-100');
+            }, 10);
+            
+            // 3秒后隐藏
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+                
+                // 完全隐藏后移除元素
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+        
+        // 添加滚动动画
+        window.addEventListener('scroll', () => {
+            const elements = document.querySelectorAll('.scale-hover');
+            elements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementBottom = element.getBoundingClientRect().bottom;
+                
+                // 元素在视口中
+                if (elementTop < window.innerHeight && elementBottom > 0) {
+                    element.style.transform = 'scale(1.02)';
+                } else {
+                    element.style.transform = 'scale(1)';
+                }
+            });
+        });
+        
+        // 页面加载时自动生成一张随机卡片并开始气泡动画
+        window.addEventListener('load', () => {
+            console.log('Page loaded, starting bubbles...'); // 添加调试日志
+            setTimeout(() => {
+                generateCardBtn.click();
+                startBubbles();
+            }, 1500);
+        });
+    </script>
+</body>
+</html>    
